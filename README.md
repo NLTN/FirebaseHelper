@@ -1,5 +1,5 @@
 # Firebase iOS SDKs
-Sending a notification
+Sending a notification.
 
 Read more at https://firebase.google.com/docs/cloud-messaging/server
 
