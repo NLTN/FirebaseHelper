@@ -2,7 +2,7 @@
 //  FirebaseHelper.h
 //  FirebaseHelper
 //
-//  Created by Nguyen Nguyen on 12/28/16.
+//  Created by Nguyen Nguyen on 12/22/16.
 //  Copyright © 2016 Nguyen Nguyen. All rights reserved.
 //
 
