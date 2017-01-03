@@ -16,6 +16,12 @@ extension FirebaseHelper {
         // MARK: - Constructors
         
         // MARK: - Public Properties
+        public static var currentUser: FIRUser? {
+            get {
+                return FIRAuth.auth()?.currentUser
+            }
+        }
+        
         public static var IsSignedIn: Bool {
             get {
                 let a = FIRAuth.auth()?.currentUser
