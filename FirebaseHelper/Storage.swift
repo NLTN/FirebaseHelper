@@ -173,44 +173,58 @@ extension FirebaseHelper {
         
         public func UploadImage(image: UIImage, compression: CGFloat?, completion:((_ metadata: FIRStorageMetadata?, _ error: Error?) -> Void)?) {
             
-            guard let imageData = UIImageJPEGRepresentation(image, compression ?? 1.0) else { return }
-            
-            let path = (Authentication.currentUser?.uid)! + GenerateFilename(fileExtension: "jpg")
-            
-            let metadata = FIRStorageMetadata()
-            metadata.contentType = "image/png"
-            
-            
-            DoUpload(data: imageData, storagePath: path, metadata: metadata, originalFileName: "a.jpg") { (metadata, error) in
-                
-                completion!(metadata, error)
-            }
+//            guard let imageData = UIImageJPEGRepresentation(image, compression ?? 1.0) else { return }
+//            
+//            let path = (Authentication.currentUser?.uid)! + GenerateFilename(fileExtension: "jpg")
+//            
+//            let metadata = FIRStorageMetadata()
+//            metadata.contentType = "image/png"
         }
         
-        public func Upload(filePath: String, storagePath: String, completion:((_ metadata: FIRStorageMetadata?, _ error: Error?) -> Void)?) {
+        public func Upload(filePath: String, storagePath: String?, completion:((_ percentComplete: Int, _ metadata: FIRStorageMetadata?, _ error: Error?) -> Void)?) {
             let data = FileManager.default.contents(atPath: filePath)
             
             if data != nil {
+                // Local file
                 let url = NSURL(fileURLWithPath: filePath)
-                let pathExtension = url.pathExtension
-
+                let filename = url.lastPathComponent
                 
-                
-                
+                // Create the file metadata
                 let metadata = FIRStorageMetadata()
                 metadata.contentType = mimeTypeForPath(path: filePath)
-            }
-        }
-        
-        public func DoUpload(data: Data, storagePath: String, metadata: FIRStorageMetadata?, originalFileName: String?, completion:((_ metadata: FIRStorageMetadata?, _ error: Error?) -> Void)?) {
-            
-            self.storageRef.child(storagePath).put(data, metadata: metadata) { (metadata, error) in
-                if let error = error {
-                    print("Error uploading: \(error)")
-                    return
+                metadata.customMetadata = ["OriginalName": filename!]
+                
+                var _storagePath = ""
+                if storagePath != nil && storagePath?.isEmpty == false {
+                    _storagePath = storagePath!
+                } else {
+                    _storagePath = (Authentication.currentUser?.uid)! + GenerateFilename(fileExtension: url.pathExtension!)
                 }
-                print("upload success")
-                completion!(metadata, error)
+                
+                // Upload file and metadata
+                let uploadTask = self.storageRef.child(_storagePath).put(data!, metadata: metadata)
+                
+                // Task reported a progress event.
+                uploadTask.observe(.progress, handler: { (snapshot) in
+                    let percentComplete = Int(100 * Double(snapshot.progress!.completedUnitCount) / Double(snapshot.progress!.totalUnitCount))
+                    if percentComplete < 100 {
+                        completion!(percentComplete, snapshot.metadata, snapshot.error)
+                    }
+                })
+                
+                // Task has completed successfully.
+                uploadTask.observe(.success) { snapshot in
+                    // Upload completed successfully
+                    completion!(100, snapshot.metadata, snapshot.error)
+                }
+                
+                // Task has failed and is unrecoverable.
+                uploadTask.observe(.failure) { snapshot in
+                    completion!(0, snapshot.metadata, snapshot.error)
+                }
+                
+            } else {
+                print("Error: File not found")
             }
         }
     }
