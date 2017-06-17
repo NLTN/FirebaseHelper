@@ -42,6 +42,12 @@ extension FirebaseHelper {
             return (ref?.child("UserConfigurations").child("Theme"))!
         }
         
+        public func SaveValue() {
+            let dbRef = ref?.child((FirebaseHelper.Authentication.currentUser?.uid)! + "/myFiles/myFile")
+            dbRef?.setValue("abcdef")
+            
+        }
+        
         public func Query(path: String, orderBy: String, condition: Condition, observingMode: ObservingMode, eventType: FIRDataEventType, completion:((_ snapshot: NSDictionary?) -> Void)?) {
             
             switch condition {
